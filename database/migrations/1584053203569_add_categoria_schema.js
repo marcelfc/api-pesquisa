@@ -13,7 +13,7 @@ class AddCategoriaSchema extends Schema {
 
   down () {
     this.table('pesquisas', (table) => {
-      // reverse alternations
+      table.dropColumn('categoria_id')
     })
   }
 }

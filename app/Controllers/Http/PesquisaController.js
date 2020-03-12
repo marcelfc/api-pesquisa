@@ -41,11 +41,16 @@ class PesquisaController {
     async store({ request, response }) {
 
         try {
-            const data = request.only(['titulo', 'categoria_id'])
+            const data = request.only(['titulo', 'categoria_id','is_public'])
             const data_items = request.only(['items'])
             const date = new Date()
             date.setDate(date.getDate() + 7)
-            const pesquisa = await Pesquisa.create({... data, data_expiracao: date.toISOString()})
+            const pesquisa = await Pesquisa.create(
+                {
+                    ... data,
+                    data_expiracao: date.toISOString(),
+                    public_key: this.generatePublicKey(20),
+                })
             data_items['items'].map(item => {
                 pesquisa.items().create({descricao: item.descricao})
             })
@@ -54,6 +59,7 @@ class PesquisaController {
 
             return pesquisa
         } catch (error) {
+            console.log(error)
             response.status(500).send({message: 'Erro ao salvar pesquisa.'})
         }
         
@@ -106,6 +112,16 @@ class PesquisaController {
             response.status(500).send({message: 'Erro ao excluir pesquisa.'})
         }
     }
+
+    generatePublicKey(length) {
+        let result = '';
+        let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let charactersLength = characters.length;
+        for ( let i = 0; i < length; i++ ) {
+           result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        return result;
+     }
 }
 
 module.exports = PesquisaController
