@@ -17,3 +17,4 @@
 const Route = use('Route')
 
 Route.resource('pesquisas', 'PesquisaController')
+Route.resource('categorias', 'CategoriaController')
