@@ -8,7 +8,9 @@
  * Resourceful controller for interacting with pesquisas
  */
 
-    const Pesquisa = use('App/Models/Pesquisa')
+const Pesquisa = use('App/Models/Pesquisa')
+const User = use('App/Models/User')
+const Hash = use('Hash')
 
 class PesquisaController {
     /**
@@ -23,11 +25,11 @@ class PesquisaController {
     async index({ request, response, view }) {
         try {
             const pesquisas = await Pesquisa.query().with('items').with('categoria').fetch()
-            return pesquisas  
+            return pesquisas
         } catch (error) {
-            response.status(500).send({message: 'Erro ao buscar pesquisas.'})
+            response.status(500).send({ message: 'Erro ao buscar pesquisas.' })
         }
-        
+
     }
 
     /**
@@ -41,28 +43,36 @@ class PesquisaController {
     async store({ request, response }) {
 
         try {
-            const data = request.only(['titulo', 'categoria_id','is_public'])
+            const data = request.only(['titulo', 'categoria_id', 'is_public', 'username', 'email'])
             const data_items = request.only(['items'])
             const date = new Date()
             date.setDate(date.getDate() + 7)
+
+            const user = await User.findOrCreate(
+                {email: data.email},
+                {username: data.username, email: data.email, password: await Hash.make(this.generatePublicKey(20))})
+
             const pesquisa = await Pesquisa.create(
                 {
-                    ... data,
+                    titulo: data.titulo,
+                    categoria_id: data.categoria_id,
+                    is_public: data.is_public,
+                    user_id: user.id,
                     data_expiracao: date.toISOString(),
                     public_key: this.generatePublicKey(20),
                 })
             data_items['items'].map(item => {
-                pesquisa.items().create({descricao: item.descricao})
+                pesquisa.items().create({ descricao: item.descricao })
             })
-            
-            await pesquisa.load('items', 'categoria')
+
+            await pesquisa.loadMany(['items', 'categoria'])
 
             return pesquisa
         } catch (error) {
             console.log(error)
-            response.status(500).send({message: 'Erro ao salvar pesquisa.'})
+            response.status(500).send({ message: 'Erro ao salvar pesquisa.' })
         }
-        
+
     }
 
     /**
@@ -80,7 +90,7 @@ class PesquisaController {
             await pesquisa.loadMany(['items', 'categoria'])
             return pesquisa
         } catch (error) {
-            response.status(500).send({message: 'Erro ao buscar pesquisa.'})
+            response.status(500).send({ message: 'Erro ao buscar pesquisa.' })
         }
     }
 
@@ -107,9 +117,9 @@ class PesquisaController {
         try {
             const pesquisa = await Pesquisa.find(params.id)
             pesquisa.delete()
-            response.status(200).send({message: 'Pesquisa excluída com sucesso.'})
+            response.status(200).send({ message: 'Pesquisa excluída com sucesso.' })
         } catch (error) {
-            response.status(500).send({message: 'Erro ao excluir pesquisa.'})
+            response.status(500).send({ message: 'Erro ao excluir pesquisa.' })
         }
     }
 
@@ -117,11 +127,11 @@ class PesquisaController {
         let result = '';
         let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         let charactersLength = characters.length;
-        for ( let i = 0; i < length; i++ ) {
-           result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        for (let i = 0; i < length; i++) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
         }
         return result;
-     }
+    }
 }
 
 module.exports = PesquisaController

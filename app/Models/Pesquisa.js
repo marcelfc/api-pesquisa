@@ -16,6 +16,10 @@ class Pesquisa extends Model {
     categoria() {
         return this.belongsTo('App/Models/Categoria')
     }
+
+    user() {
+        return this.belongsTo('App/Models/User')
+    }
 }
 
 module.exports = Pesquisa
