@@ -132,6 +132,22 @@ class PesquisaController {
         }
         return result;
     }
+
+    async lastFive({ params, request, response }) {
+        try {
+            const pesquisas = await Pesquisa.query()
+            .where('is_public', true)
+            .orderBy('created_at', 'desc')
+            .with('items').with('categoria')
+            .limit(5)
+            .fetch()
+            return pesquisas
+        } catch (error) {
+            console.log(error)
+            response.status(500).send({ message: error })
+        }
+        
+    }
 }
 
 module.exports = PesquisaController

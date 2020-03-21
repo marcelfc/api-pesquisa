@@ -18,3 +18,6 @@ const Route = use('Route')
 
 Route.resource('pesquisas', 'PesquisaController')
 Route.resource('categorias', 'CategoriaController')
+Route.resource('votos', 'VotoController')
+
+Route.get('lastFive', 'PesquisaController.lastFive')
