@@ -11,6 +11,7 @@
 const Pesquisa = use('App/Models/Pesquisa')
 const User = use('App/Models/User')
 const Hash = use('Hash')
+const Database = use('Database')
 
 class PesquisaController {
     /**
@@ -147,6 +148,29 @@ class PesquisaController {
             response.status(500).send({ message: error })
         }
         
+    }
+
+    async topThree({params, request, response}) {
+        try {
+            const data = await Database.raw(`
+                select p.id, sum(i.votos) as total from pesquisas as p
+                join items as i on i.pesquisa_id = p.id
+                where p.data_expiracao > 'NOW()'
+                group by p.id
+                order by total desc
+                limit 3
+            `)
+            let results = []
+            for(let d of data.rows){
+                const pesquisa = await Pesquisa.findOrFail(d.id)
+                await pesquisa.loadMany(['items', 'categoria'])
+                results.push(pesquisa)
+            }
+            return results
+        } catch (error) {
+            console.log(error)
+            response.status(500).send({ message: error })
+        }
     }
 }
 

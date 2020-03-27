@@ -21,3 +21,5 @@ Route.resource('categorias', 'CategoriaController')
 Route.resource('votos', 'VotoController')
 
 Route.get('lastFive', 'PesquisaController.lastFive')
+
+Route.get('topThree', 'PesquisaController.topThree')
